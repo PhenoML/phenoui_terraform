@@ -38,7 +38,7 @@ fi
 
 if [ -n "$get_config" ]
 then
-  yq -c ".$get_config" < $config_path
+  yq "... comments=\"\" | .$get_config" < $config_path
   exit 0
 fi
 
@@ -62,7 +62,7 @@ trap cleanup EXIT
 trap sigint_handler SIGINT
 
 function load_configuration {
-  config=$(yq -c '.' < $config_path)
+  config=$(yq '... comments=""' < $config_path)
 
   # load project list
   while read -r object
@@ -71,7 +71,7 @@ function load_configuration {
       local _project
       _project=$(eval echo "$object")
       projects+=("$_project")
-    done < <(echo "$config" | yq -c '.project | .[]')
+    done < <(echo "$config" | yq '.project | .[]')
 
   # select one project based on GIT_BRANCH environment variable
   for _project in "${projects[@]}"
@@ -84,17 +84,17 @@ function load_configuration {
   done
 
   # load the rest of the configuration
-  region=$(echo "$config" | yq -r '.region')
-  bucket=$(echo "$config" | yq -r '.bucket')
-  description=$(echo "$config" | yq -r '.description')
+  region=$(echo "$config" | yq '.region')
+  bucket=$(echo "$config" | yq '.bucket')
+  description=$(echo "$config" | yq '.description')
 
   # substitute environment variables
   region=$(eval echo "$region")
   bucket=$(eval echo "$bucket")
   description=$(eval echo "$description")
 
-  run_before=$(echo "$config" | yq -r '.run_before')
-  run_after=$(echo "$config" | yq -r '.run_after')
+  run_before=$(echo "$config" | yq '.run_before')
+  run_after=$(echo "$config" | yq '.run_after')
 
   # shellcheck disable=SC2128
   if [ -n "$module_keys" ]
@@ -102,19 +102,19 @@ function load_configuration {
     for module_key in "${module_keys[@]}"
     do
       # shellcheck disable=SC2207
-      modules+=($(echo "$config" | yq -c ".modules | .[] | select(.path == \"$module_key\")"))
+      modules+=($(echo "$config" | yq ".modules | .[] | select(.path == \"$module_key\")"))
     done
   else
     while read -r object
       do
         modules+=("$object")
-      done < <(echo "$config" | yq -c '.modules | .[]')
+      done < <(echo "$config" | yq '.modules | .[]')
   fi
 
   while read -r object
     do
       globals+=("$object")
-    done < <(echo "$config" | yq -c '.globals | .[]')
+    done < <(echo "$config" | yq '.globals | .[]')
 
   echo "Configuration loaded:"
   echo "  project: $project"
@@ -126,15 +126,15 @@ function load_configuration {
 
   for module in "${globals[@]}"
   do
-    echo "  global: $(echo "$module" | yq -r '"\(.key) => \(.value // .env)"')"
+    echo "  global: $(echo "$module" | yq '"\(.key) => \(.value // .env)"')"
   done
 
   for module in "${modules[@]}"
   do
     echo "  module:"
-    echo "    path: $(echo "$module" | yq -r '.path')"
-    echo "    run_before: $(echo "$module" | yq -r '.run_before')"
-    echo "    run_after: $(echo "$module" | yq -r '.run_after')"
+    echo "    path: $(echo "$module" | yq '.path')"
+    echo "    run_before: $(echo "$module" | yq '.run_before')"
+    echo "    run_after: $(echo "$module" | yq '.run_after')"
   done
 
   echo "---------------------------------"
@@ -177,8 +177,8 @@ function setup_module_env {
   # create auto.outputs.tf file
   for global in "${globals[@]}"
   do
-    _global_key=$(echo "$global" | yq -r '.key')
-    _global_value=$(echo "$global" | yq -r '.value')
+    _global_key=$(echo "$global" | yq '.key')
+    _global_value=$(echo "$global" | yq '.value')
     # account for environment variables
     _global_value=$(eval echo "$_global_value")
     _auto_outputs+=("output \"$_global_key\" { value = \"$_global_value\" }")
@@ -217,9 +217,9 @@ function run_module {
   local _run_before
   local _run_after
 
-  _path=$(echo "$module" | yq -r '.path')
-  _run_before=$(echo "$module" | yq -r '.run_before')
-  _run_after=$(echo "$module" | yq -r '.run_after')
+  _path=$(echo "$module" | yq '.path')
+  _run_before=$(echo "$module" | yq '.run_before')
+  _run_after=$(echo "$module" | yq '.run_after')
 
   echo "Running module: $_path"
   setup_module_env "$_path" "$bucket"
