@@ -80,6 +80,9 @@ jobs:
 
     - name: Run Tofu
       id: run-tofu
+      env:
+        GCP_ORG_ID: ${{ secrets.GCP_ORG_ID }}
+        GCP_BILLING_ACCOUNT: ${{ secrets.GCP_BILLING_ACCOUNT }}
       run: |
         if [[ "${{github.event_name}}" != "pull_request" ]]; then
           ./run_tofu.sh -p -m ${{ matrix.directory }} -k ${{ secrets.GCP_SA_KEY }}
