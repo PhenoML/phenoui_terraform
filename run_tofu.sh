@@ -13,13 +13,13 @@ unset -v get_config
 while getopts c:m:k:g:pal flag
 do
   case "${flag}" in
-    c) config_path=${OPTARG};;
+    c) config_path="${OPTARG}";;
     m) module_keys=($OPTARG);;
-    k) key=${OPTARG};;
+    k) key="${OPTARG}";;
     p) plan=true;;
     a) apply=true;;
     l) local=true;;
-    g) get_config=${OPTARG};;
+    g) get_config="${OPTARG}";;
     *) ;;
   esac
 done
@@ -51,6 +51,7 @@ function cleanup {
     rm -rf "$tmp_folder"
   fi
   echo "---------------------------------"
+  exit "$1"
 }
 
 function sigint_handler {
@@ -58,8 +59,15 @@ function sigint_handler {
   exit 1
 }
 
-trap cleanup EXIT
+function error_handler {
+  echo "An error occurred on line $1, exiting..."
+  exit 1
+}
+
+trap 'cleanup $?' EXIT
 trap sigint_handler SIGINT
+trap 'error_handler ${LINENO}' ERR
+set -E
 
 function load_configuration {
   config=$(yq '... comments=""' < $config_path)
@@ -101,14 +109,13 @@ function load_configuration {
   then
     for module_key in "${module_keys[@]}"
     do
-      # shellcheck disable=SC2207
-      modules+=($(echo "$config" | yq ".modules | .[] | select(.path == \"$module_key\")"))
+      modules+=("$(echo "$config" | yq -o json -I0 ".modules | .[] | select(.path == \"$module_key\")")")
     done
   else
     while read -r object
       do
         modules+=("$object")
-      done < <(echo "$config" | yq '.modules | .[]')
+      done < <(echo "$config" | yq -o json -I0 '.modules | .[]')
   fi
 
   while read -r object
@@ -124,9 +131,9 @@ function load_configuration {
   echo "  run_before: $run_before"
   echo "  run_after: $run_after"
 
-  for module in "${globals[@]}"
+  for global in "${globals[@]}"
   do
-    echo "  global: $(echo "$module" | yq '"\(.key) => \(.value // .env)"')"
+    echo "  global: $(echo "$global" | yq '"\(.key) => \(.value // .env)"')"
   done
 
   for module in "${modules[@]}"
