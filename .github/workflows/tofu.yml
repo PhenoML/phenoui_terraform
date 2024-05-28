@@ -18,7 +18,7 @@ jobs:
       enabled: ${{ steps.check-project.outputs.enabled }}
     steps:
       - uses: actions/checkout@v3
-      - uses: mikefarah/yq@3.4.1
+      - uses: mikefarah/yq@v4.44.1
       - name: "Setup Env Variables"
         run:  |
           if [[ "${{github.event_name}}" != "pull_request" ]]; then
@@ -42,7 +42,7 @@ jobs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
       - uses: actions/checkout@v3
-      - uses: mikefarah/yq@3.4.1
+      - uses: mikefarah/yq@v4.44.1
       - name: "Set Matrix From Config"
         id: set-matrix
         run: echo "matrix=$(./run_tofu.sh -g modules | yq -o json -I0 "map(.path)")" >> $GITHUB_OUTPUT
@@ -67,7 +67,7 @@ jobs:
       uses: opentofu/setup-opentofu@v1
 
     - name: Setup YQ
-      uses: mikefarah/yq@3.4.1
+      uses: mikefarah/yq@v4.44.1
 
     - name: Define Environment Variables
       run: |
@@ -83,12 +83,13 @@ jobs:
       env:
         GCP_ORG_ID: ${{ secrets.GCP_ORG_ID }}
         GCP_BILLING_ACCOUNT: ${{ secrets.GCP_BILLING_ACCOUNT }}
+        GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
       run: |
         if [[ "${{github.event_name}}" != "pull_request" ]]; then
-          ./run_tofu.sh -p -m ${{ matrix.directory }} -k ${{ secrets.GCP_SA_KEY }}
+          ./run_tofu.sh -p -a -m "${{ matrix.directory }}" -k "$GCP_SA_KEY"
         fi
         if [[ "${{github.event_name}}" == "pull_request" ]]; then
-          ./run_tofu.sh -p -a -m ${{ matrix.directory }} -k ${{ secrets.GCP_SA_KEY }}
+          ./run_tofu.sh -p -m "${{ matrix.directory }}" -k "$GCP_SA_KEY"
         fi
 
     - name: Comment PR
