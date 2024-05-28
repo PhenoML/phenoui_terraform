@@ -30,7 +30,7 @@ jobs:
       - name: "Check Project Enabled"
         id: check-project
         run: |
-          echo enabled=$(./run_tofu.sh -g project | yq -c "map(. == \"$GIT_BRANCH\") | any") >> $GITHUB_OUTPUT
+          echo enabled=$(./run_tofu.sh -g project | yq "map(. == \"$GIT_BRANCH\") | any") >> $GITHUB_OUTPUT
 
 
   prepare-matrix:
@@ -45,7 +45,7 @@ jobs:
       - uses: mikefarah/yq@3.4.1
       - name: "Set Matrix From Config"
         id: set-matrix
-        run: echo "matrix=$(./run_tofu.sh -g modules | yq -c "map(.path)")" >> $GITHUB_OUTPUT
+        run: echo "matrix=$(./run_tofu.sh -g modules | yq -o json -I0 "map(.path)")" >> $GITHUB_OUTPUT
 
   tofu:
     name: 'OpenTofu'
