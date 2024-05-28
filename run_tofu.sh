@@ -13,13 +13,13 @@ unset -v get_config
 while getopts c:m:k:g:pal flag
 do
   case "${flag}" in
-    c) config_path=${OPTARG};;
+    c) config_path="${OPTARG}";;
     m) module_keys=($OPTARG);;
-    k) key=${OPTARG};;
+    k) key="${OPTARG}";;
     p) plan=true;;
     a) apply=true;;
     l) local=true;;
-    g) get_config=${OPTARG};;
+    g) get_config="${OPTARG}";;
     *) ;;
   esac
 done
