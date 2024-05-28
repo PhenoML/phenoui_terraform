@@ -101,14 +101,13 @@ function load_configuration {
   then
     for module_key in "${module_keys[@]}"
     do
-      # shellcheck disable=SC2207
-      modules+=($(echo "$config" | yq ".modules | .[] | select(.path == \"$module_key\")"))
+      modules+=("$(echo "$config" | yq -o json -I0 ".modules | .[] | select(.path == \"$module_key\")")")
     done
   else
     while read -r object
       do
         modules+=("$object")
-      done < <(echo "$config" | yq '.modules | .[]')
+      done < <(echo "$config" | yq -o json -I0 '.modules | .[]')
   fi
 
   while read -r object
