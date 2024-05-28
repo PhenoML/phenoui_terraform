@@ -51,6 +51,7 @@ function cleanup {
     rm -rf "$tmp_folder"
   fi
   echo "---------------------------------"
+  exit "$1"
 }
 
 function sigint_handler {
@@ -58,8 +59,15 @@ function sigint_handler {
   exit 1
 }
 
-trap cleanup EXIT
+function error_handler {
+  echo "An error occurred on line $1, exiting..."
+  exit 1
+}
+
+trap 'cleanup $?' EXIT
 trap sigint_handler SIGINT
+trap 'error_handler ${LINENO}' ERR
+set -E
 
 function load_configuration {
   config=$(yq '... comments=""' < $config_path)
