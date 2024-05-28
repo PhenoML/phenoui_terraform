@@ -83,12 +83,13 @@ jobs:
       env:
         GCP_ORG_ID: ${{ secrets.GCP_ORG_ID }}
         GCP_BILLING_ACCOUNT: ${{ secrets.GCP_BILLING_ACCOUNT }}
+        GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
       run: |
         if [[ "${{github.event_name}}" != "pull_request" ]]; then
-          ./run_tofu.sh -p -m "${{ matrix.directory }}" -k "${{ secrets.GCP_SA_KEY }}"
+          ./run_tofu.sh -p -m "${{ matrix.directory }}" -k "$GCP_SA_KEY"
         fi
         if [[ "${{github.event_name}}" == "pull_request" ]]; then
-          ./run_tofu.sh -p -a -m "${{ matrix.directory }}" -k "${{ secrets.GCP_SA_KEY }}"
+          ./run_tofu.sh -p -a -m "${{ matrix.directory }}" -k "$GCP_SA_KEY"
         fi
 
     - name: Comment PR
