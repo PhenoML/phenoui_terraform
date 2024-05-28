@@ -1,0 +1,3 @@
+module "global" {
+  source = "../global"
+}
