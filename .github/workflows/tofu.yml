@@ -43,7 +43,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: mikefarah/yq@v4.44.1
-        name: "Set Matrix From Config"
+      - name: "Set Matrix From Config"
         id: set-matrix
         run: echo "matrix=$(./run_tofu.sh -g modules | yq -c "map(.path)")" >> $GITHUB_OUTPUT
 
