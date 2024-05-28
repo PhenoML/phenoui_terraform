@@ -9,7 +9,8 @@ following arguments:
 GCP_ORG_ID="<org_id>" GCP_BILLING_ACCOUNT="<billing_account>" GIT_BRANCH="phenoui-admin" ./run_tofu.sh -l -p -a
 ```
 where `<org_id>` is the organization id where the admin project will be created, `<billing_account>` is the billing
-account to link the project to, and `phenoui-admin` is the branch containing the terraform files.
+account id to link the project to, and `phenoui-admin` is the branch containing the terraform files.
+**NOTE:** You need to be logged into the gcloud CLI and have the necessary permissions to create the resources.
 
 After the admin project is created, create a service account key by running the following command:
 ```
@@ -21,49 +22,50 @@ This will create a key file in the `gcp_keys` folder of the repository.
 
 Finally, configure the GitHub repository with the secrets:
 - `GCP_ORG_ID`: The organization id where the admin project was created.
-- `GCP_BILLING_ACCOUNT`: The billing account linked to the admin project.
+- `GCP_BILLING_ACCOUNT`: The billing account id linked to the admin project.
 - `GCP_SA_KEY`: The service account key for the service account that was created in the previous step.
 
-**AFTER THIS POINT, THE REPOSITORY IS READY TO BE USED TO MANAGE PROJECTS VIA GITHUB ACTIONS**
+**AT THIS POINT, THE REPOSITORY IS READY TO BE USED TO MANAGE PROJECTS VIA GITHUB ACTIONS**
 
 ## Structure
-Each PhenoUI project is expected to run in its own folder, in each folder there must be an `admin` project that will
-hold all the state files from other projects and a service account with enough permissions to manage the resources. Note
-that only the root folder should have the `admin` project, the other folders should have the `admin` project as a parent.
+Each PhenoUI project is expected to run in its own GCP folder, in each GCP folder that functions as the root of a
+PhenoUI project, there must be an `admin` project that will hold all the state files from other projects and a service
+account with enough permissions to manage the resources. Note that only the root GCP folder should have the `admin`
+project, the other folders should have the `admin` project as a parent.
 
 This should result in a folder structure as follows:
 ```
-root_folder
+root_gcp_folder
 ├── admin_project
 ├── project1-product
 ├── project1-staging
 ├── project1-develop
-└── child_folder
+└── child_gcp_folder
     ├── project2-product
     ├── project2-staging
     └── project2-develop
     ...
-another_root_folder
+another_root_gcp_folder
 ├── another_admin_project
-└── another_child_folder   
+└── another_child_gcp_folder   
     ├── project3-product
     ├── project3-staging
     └── project3-develop
 ...
 ```
 
-Generally, it is recommended that each root folder is mapped to a fork of this repository, but it is possible to modify
-the scripts and github actions to allow for a single repository to manage multiple root folders.
+Generally, it is recommended that each root gcp folder is mapped to a fork of this repository, but it is possible to 
+modify the scripts and github actions to allow for a single repository to manage multiple root folders.
 
 ## Admin Project
-To create the admin project, an account with enough permissions to create the resources configured is needed (the branch
+To create the admin project, an account with enough permissions to create the necessary resources is needed (the branch
 `phenoui-admin`, under the `core` folder contains all the terraform files describing the resources needed). The easiest
 way to get started is to run the `run-tofu.sh` script locally with the following arguments:
 ```
 GCP_ORG_ID="<org_id>" GCP_BILLING_ACCOUNT="<billing_account>" GIT_BRANCH="phenoui-admin" ./run_tofu.sh -l -p -a
 ```
 where `<org_id>` is the organization id where the admin project will be created, `<billing_account>` is the billing
-account to link the project to, and `phenoui-admin` is the branch containing the terraform files. The `-l` flag will
+account id to link the project to, and `phenoui-admin` is the branch containing the terraform files. The `-l` flag will
 create the statefile locally, the `-p` flag will run `tofu plan` and the `-a` flag will run `tofu apply`.
 
 The default configuration for the admin project runs a script after the project is created to transfer the statefile to
