@@ -124,9 +124,9 @@ function load_configuration {
   echo "  run_before: $run_before"
   echo "  run_after: $run_after"
 
-  for module in "${globals[@]}"
+  for global in "${globals[@]}"
   do
-    echo "  global: $(echo "$module" | yq '"\(.key) => \(.value // .env)"')"
+    echo "  global: $(echo "$global" | yq '"\(.key) => \(.value // .env)"')"
   done
 
   for module in "${modules[@]}"
