@@ -1,0 +1,62 @@
+# an array with the names of the projects that this configuration applies to, when running in
+# the CI/CD pipeline, if the branch name contained in the GIT_BRANCH environment variable is
+# not in this list, the build will be skipped. This is useful to create multiple projects in
+# the same repository and allow for pull request based deployments. The name of the project to
+# be created is the same as the branch name.
+# required field
+project:
+  - "phenoui-admin"
+
+# the main region for this project, the state of this project will be stored in this region
+# required field
+region: "us-central1"
+
+# the bucket where the state files will be stored, usually the same as the tofu project
+# required field
+bucket: "phenoui-tofu-state-$project-$region"
+
+# the description of the project
+# optional field
+description: "Project meant to be used to hold the tofu configuration, service account and state files"
+
+# a bash command to run before the project code is executed, runs from the root of the repository
+# optional field
+#
+# example:
+# run_before: "echo 'hello project'"
+
+# a bash command to run after the project code is executed, runs from the root of the repository
+# optional field
+#
+# example:
+# run_after: "echo 'goodbye project'"
+
+# list of modules that will be used by the project, each module should point to a folder in the repository
+# required field
+modules:
+  # each entry consists of
+  # path (required): the path to the folder that contains the module
+  # run_before (optional): a bash command to run before the module code is executed, runs from a temporary
+  #                        folder that contains the module code and automatically generated files
+  # run_after (optional): a bash command to run after the module code is executed, runs from a temporary
+  #                       folder that contains the module code and automatically generated files
+  #
+  # example:
+  #- { path: "module_folder", run_before: "echo 'hello module'", run_after: "echo 'goodbye module'" }
+  - { path: "core", run_after: "./sync_local_state.sh -b $bucket -p $project -m $module" }
+
+# an array containing terraform global variables that will be used by the project
+# optional field
+globals:
+  # each entry consists of
+  # key (required): the name of the global variable
+  # value (required): the value of the global variable, can reference environment variables
+  #
+  # example:
+  #- { key: "tf_global_1", value: "variable_value" }
+  - { key: "region", value: "$region" }
+  - { key: "project", value: "$project" }
+  - { key: "bucket", value: "$bucket" }
+  - { key: "org_id", value: "$GCP_ORG_ID" }
+  - { key: "folder", value: "phenoui" }
+  - { key: "billing_account", value: "$GCP_BILLING_ACCOUNT" }
